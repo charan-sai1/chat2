@@ -1,7 +1,6 @@
 import google.generativeai as genai
 import streamlit as st
 import os
-import PyPDF2
 
 api = "AIzaSyB7R_31L1M5H3Qjwqd1LKy3QrHPM2zMbZM"
 genai.configure(api_key=api)
@@ -9,18 +8,19 @@ genai.configure(api_key=api)
 
 model = genai.GenerativeModel(model_name="gemini-pro")
 
+from PyPDF2 import PdfReader
 
 def read_pdf(file):
-    # Create a PDF file reader object
-    pdf_reader = PyPDF2.PdfFileReader(file)
+    # Create a PDF reader object
+    pdf_reader = PdfReader(file)
     
     # Initialize an empty string to store the concatenated content
     full_text = ""
     
     # Loop through each page of the PDF
-    for page_num in range(pdf_reader.numPages):
+    for page in pdf_reader.pages:
         # Extract text from the current page
-        page_text = pdf_reader.getPage(page_num).extractText()
+        page_text = page.extract_text()
         
         # Append the page text to the full text string
         full_text += page_text
