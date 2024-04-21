@@ -1,7 +1,7 @@
 import google.generativeai as genai
 import streamlit as st
 import os
-
+import PyPDF2
 
 api = "AIzaSyB7R_31L1M5H3Qjwqd1LKy3QrHPM2zMbZM"
 genai.configure(api_key=api)
@@ -10,69 +10,22 @@ genai.configure(api_key=api)
 model = genai.GenerativeModel(model_name="gemini-pro")
 
 
-from PyPDF2 import PdfReader
-from pptx import Presentation
-import docx
-
-def read_text_from_pdf(file):
-    # Create a PDF reader object
-    pdf_reader = PdfReader(file)
+def read_pdf(file):
+    # Create a PDF file reader object
+    pdf_reader = PyPDF2.PdfFileReader(file)
     
     # Initialize an empty string to store the concatenated content
     full_text = ""
     
     # Loop through each page of the PDF
-    for page in pdf_reader.pages:
+    for page_num in range(pdf_reader.numPages):
         # Extract text from the current page
-        page_text = page.extract_text()
+        page_text = pdf_reader.getPage(page_num).extractText()
         
         # Append the page text to the full text string
         full_text += page_text
     
     return full_text
-
-def read_text_from_docx(file):
-    # Create a DOCX document object
-    doc = docx.Document(file)
-    
-    # Initialize an empty string to store the concatenated content
-    full_text = ""
-    
-    # Loop through each paragraph in the document
-    for paragraph in doc.paragraphs:
-        # Append the paragraph text to the full text string
-        full_text += paragraph.text + "\n"
-    
-    return full_text
-
-def read_text_from_ppt(file):
-    # Create a PowerPoint presentation object
-    ppt = Presentation(file)
-    
-    # Initialize an empty string to store the concatenated content
-    full_text = ""
-    
-    # Loop through each slide of the presentation
-    for slide in ppt.slides:
-        # Loop through each shape in the slide
-        for shape in slide.shapes:
-            # Check if the shape has text
-            if hasattr(shape, "text"):
-                # Append the text to the full text string
-                full_text += shape.text
-    
-    return full_text
-
-def read_text(file):
-    file_extension = file.name.split(".")[-1].lower()
-    if file_extension == "pdf":
-        return read_text_from_pdf(file)
-    elif file_extension == "docx":
-        return read_text_from_docx(file)
-    elif file_extension == "pptx":
-        return read_text_from_ppt(file)
-    else:
-        return "Unsupported file format"
 
 def ask(question:str):
     try:
@@ -100,7 +53,7 @@ if __name__ == "__main__":
     st.header("Upload a File")
     uploaded_file = st.file_uploader("Choose a file", type=['PDF', 'doc'])
     if uploaded_file is not None:
-        pdf_content = read_text(uploaded_file)
+        pdf_content = read_pdf(uploaded_file)
         if pdf_content:
             hist = [
                     {"parts": [{"text": pdf_content}], "role": "user"},
